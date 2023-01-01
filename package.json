@@ -1,0 +1,23 @@
+{
+  "name": "chatgptbot",
+  "version": "1.0.0",
+  "description": "My first discord bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrydenIsNotSmart/ChatGPTBot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BrydenIsNotSmart/ChatGPTBot/issues"
+  },
+  "homepage": "https://github.com/BrydenIsNotSmart/ChatGPTBot#readme",
+  "dependencies": {
+    "discord.js": "^14.7.1"
+  }
+}
