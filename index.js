@@ -1,17 +1,25 @@
-const Discord = require('discord.js');
-const { token } = require('./config.json');
+// index.js
 
-const Client = Discord.Client;
-const Events = Discord.Events;
-const GatewayIntentBits = Discord.GatewayIntentBits;
+const Discord = require('discord.js')
+const client = new Discord.Client()
+const commands = new Map()
 
-// Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+async function registerCommands() {
+  const commandModule = await import('./commands/repeat')
+  commands.set(commandModule.data.name, commandModule)
+}
 
-// When the client is ready, run this code (only once)
-client.once(Events.CLIENT_READY, c => {
-	console.log(`Ready! Logged in as ${c.user.tag}`);
-});
+client.on('message', message => {
+  if (!message.content.startsWith('/')) return
 
-// Log in to Discord with your client's token
-client.login(token);
+  const commandName = message.content.split()[0]
+  const command = commands.get(commandName)
+  if (!command) return
+
+  command.execute(message)
+})
+
+registerCommands().then(() => {
+  client.login('MTA1NzQ0NzUxMjc1NzI1MjIxNg.Gb7G9y.1gY5hk8KkFzXXlmqwGPLZGdaH8tQ26KCzUtVzY')
+})
+
