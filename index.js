@@ -1,25 +1,49 @@
 // index.js
 
-const Discord = require('discord.js')
-const client = new Discord.Client()
-const commands = new Map()
+const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const fs = require('node:fs');
+const path = require('node:path');
+global.config = require("./config.json")
 
-async function registerCommands() {
-  const commandModule = await import('./commands/repeat')
-  commands.set(commandModule.data.name, commandModule)
+client.once(Events.ClientReady, c => {
+	console.log(`${c.user.tag} is logged in and ready.`);
+});
+
+client.commands = new Collection();
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+for (const file of commandFiles) {
+	const filePath = path.join(commandsPath, file);
+	const command = require(filePath);
+	// Set a new item in the Collection with the key as the command name and the value as the exported module
+	if ('data' in command && 'execute' in command) {
+		client.commands.set(command.data.name, command);
+	} else {
+		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+	}
 }
 
-client.on('message', message => {
-  if (!message.content.startsWith('/')) return
+client.on(Events.InteractionCreate, async interaction => {
+	if (!interaction.isChatInputCommand()) return;
 
-  const commandName = message.content.split()[0]
-  const command = commands.get(commandName)
-  if (!command) return
+	const command = interaction.client.commands.get(interaction.commandName);
 
-  command.execute(message)
-})
+	if (!command) {
+		console.error(`No command matching ${interaction.commandName} was found.`);
+		return;
+	}
 
-registerCommands().then(() => {
-  client.login('MTA1NzQ0NzUxMjc1NzI1MjIxNg.Gb7G9y.1gY5hk8KkFzXXlmqwGPLZGdaH8tQ26KCzUtVzY')
-})
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+	}
+});
+
+require("./deploy.js")
+client.login(config.token)
+
 
